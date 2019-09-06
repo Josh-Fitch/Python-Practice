@@ -1,0 +1,4 @@
+#include numpy
+
+Matrix_size = int(input('Please input the size of your Matrix: '))
+Threshold = int(input('Please input your threshold for values considered Islands: '))
