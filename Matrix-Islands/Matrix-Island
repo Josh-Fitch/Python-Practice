@@ -1,4 +1,89 @@
-#include numpy
+import numpy
 
-Matrix_size = int(input('Please input the size of your Matrix: '))
-Threshold = int(input('Please input your threshold for values considered Islands: '))
+def _island_matrix_(threshold, min_island_size, matrix):   
+
+    # Find size of input array
+    [row, col] = numpy.shape(matrix)
+
+    # Create an island counter to keep track of number of independent islands
+    island_counter = 1
+
+    # iterate through matrix and set all values >= threshold to 1 and all below threshold to 0
+    for i in range(row):
+        for j in range(col):
+            if matrix[i][j] >= threshold:
+                matrix[i][j] = 1
+            else: 
+                matrix[i][j] = 0
+    # iterate through each matrix position and check values to left and above
+    # when new islands are found, set those index values as the "island number", to be counted and totaled later
+    for i in range(row):
+        for j in range(col):
+            if matrix[i][j] == 1:
+                # Case 1: value is in top left corner of matrix
+                if i-1 not in range(row) and j-1 not in range(col):
+                   matrix[i][j] = 1
+                # Case 2: value is along top row of matrix
+                elif i-1 not in range(row):                           
+                    if matrix[i][j-1] > 0:
+                        matrix[i][j] = matrix[i][j-1]
+                    else:
+                        island_counter = island_counter + 1
+                        matrix[i][j] = island_counter
+                # Case 3: value is along left column of matrix
+                elif j-1 not in range(col):
+                    if matrix[i-1][j] > 0:
+                        matrix[i][j] = matrix[i-1][j]
+                    else:
+                        island_counter = island_counter + 1
+                        matrix[i][j] = island_counter
+                # Case 4: value is not in left column or top row so we can check above and left values
+                elif i-1 in range(row) and j-1 in range(col):
+                    # Case 4.1: values to left and above are zero, so set current index as new island number
+                    if matrix[i-1][j] == 0 and matrix[i][j-1] == 0:
+                        island_counter = island_counter + 1
+                        matrix[i][j] = island_counter
+                    # Case 4.2: values to left and above are non-zero and different (meaning two different islands)
+                        # In this unique case, two independently identified islands are realized as the same island
+                        # Since they are actually the same island, replace the higher "island number" with the "lower island" number
+                    elif matrix[i-1][j] > 0 and matrix[i][j-1] > 0 and matrix[i-1][j] != matrix[i][j-1]:
+                        max_island = max(matrix[i-1][j],matrix[i][j-1])
+                        min_island = min(matrix[i-1][j],matrix[i][j-1])
+                        matrix = numpy.where(matrix==max_island,min_island,matrix)
+                        matrix[i][j] = min_island
+                        island_counter = island_counter - 1
+                    # Case 4.3: Either above value or left value are part of an island (or both are a part of same island)
+                    else:
+                        if matrix[i-1][j] > 0:
+                            matrix[i][j] = matrix[i-1][j]
+                        if matrix[i][j-1] > 0:
+                            matrix[i][j] = matrix[i][j-1]
+    # Now we have a matrix of values representing which island they are a part of
+    # Iterate through the island numbers, and for each one total how many there are
+    # If there are enough to satisfy min island size, set that island equal to ones. If not, set equal to zeros. 
+    for k in range(1,island_counter+1):
+        island_size = 0
+        for i in range(row):
+            for j in range(col):
+                if matrix[i][j] == k:
+                    island_size = island_size + 1
+        if island_size >= min_island_size:
+            matrix = numpy.where(matrix==k,1,matrix)
+        else:
+            matrix = numpy.where(matrix==k,0,matrix)
+    
+    # Returns final matrix containing booleans of islands
+    return(matrix)
+
+threshold = 4
+min_island_size = 3
+matrix = [[9,8,1,2,5],[4,8,2,3,4],[5,7,6,5,4],[2,2,2,7,3],[4,2,2,8,2],[2,4,4,2,2]]
+#matrix = [[4, 4, 4, 2, 2],[4, 2, 2, 2, 2],[2, 2, 8, 7, 2],[2, 8, 8, 8, 2],[8, 2, 2, 2, 8]]
+#matrix = [[1,0,1,0,1],[1,0,1,0,1],[1,0,1,0,1],[1,0,0,0,1],[1,1,1,1,1]]
+matrix = numpy.array(matrix)
+print('\n\n')
+print(matrix)
+binary_islands = _island_matrix_(threshold, min_island_size, matrix)
+print('\n\n')
+print(binary_islands)
+print('\n\n')
